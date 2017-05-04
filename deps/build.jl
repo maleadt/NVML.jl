@@ -27,8 +27,14 @@ function shutdown(libpath)
 end
 
 function version(libpath)
-    buf = Vector{UInt8}(128)
+    buf = Vector{UInt8}(80)
     @apicall(libpath, :nvmlSystemGetNVMLVersion, (Ptr{UInt8}, Cuint), buf, length(buf))
+    return VersionNumber(unsafe_string(pointer(buf)))
+end
+
+function driver(libpath)
+    buf = Vector{UInt8}(80)
+    @apicall(libpath, :nvmlSystemGetDriverVersion, (Ptr{UInt8}, Cuint), buf, length(buf))
     return VersionNumber(unsafe_string(pointer(buf)))
 end
 
@@ -65,12 +71,17 @@ function main()
     libnvml_path = find_libnvml()
     init(libnvml_path)
     libnvml_version = version(libnvml_path)
+    driver_version = driver(libnvml_path)
+    if libnvml_version.minor != driver_version.major
+        warn("The reported driver version $driver_version does not match NVML $libnvml_version; Please report this!")
+    end
     shutdown(libnvml_path)
 
     # check if we need to rebuild
     if isfile(ext)
         @eval module Previous; include($ext); end
         if isdefined(Previous, :libnvml_version) && Previous.libnvml_version == libnvml_version &&
+           isdefined(Previous, :driver_version) && Previous.driver_version == driver_version &&
            isdefined(Previous, :libnvml_path)    && Previous.libnvml_path == libnvml_path
             info("NVML.jl has already been built for this set-up.")
         end
@@ -81,6 +92,7 @@ function main()
         write(fh, """
             const libnvml_path = "$(escape_string(libnvml_path))"
             const libnvml_version = v"$libnvml_version"
+            const driver_version = v"$driver_version"
             """)
     end
     nothing

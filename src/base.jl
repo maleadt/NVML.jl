@@ -4,12 +4,14 @@
 # API versioning
 #
 
+# TODO: should we match against the NVML version, or the driver version?
+
 const mapping = Dict{Symbol,Symbol}()
 
 # NOTE: nvmlDeviceGetPciInfo_v2 and nvmlDeviceGetHandleByPciBusId_v2 are not explicitly
 # mentioned to be introduced in 5.319, but it seems plausible given that's when other v2
 # methods started appearing in the API
-if libnvml_version >= v"5.319"
+if driver_version >= v"319"
     mapping[:nvmlInit]                      = :nvmlInit_v2
     mapping[:nvmlDeviceGetCount]            = :nvmlDeviceGetCount_v2
     mapping[:nvmlDeviceGetPciInfo]          = :nvmlDeviceGetPciInfo_v2
@@ -24,7 +26,7 @@ const minver = Dict{Symbol,VersionNumber}()     # inclusive
 const maxver = Dict{Symbol,VersionNumber}()     # exclusive
 
 # changes between NVML v1.0 and v2.285
-let ver = v"2.285"
+let ver = v"285"
     minver[:nvmlDeviceGetVbiosVersion] = ver
     minver[:nvmlErrorString] = ver
     minver[:nvmlSystemGetHicVersion] = ver
@@ -36,7 +38,7 @@ let ver = v"2.285"
 end
 
 # changes between NVML v2.285 and v3.295
-let ver = v"3.295"
+let ver = v"295"
     minver[:nvmlDeviceGetMaxPcieLinkGeneration] = ver
     minver[:nvmlDeviceGetMaxPcieLinkWidth] = ver
     minver[:nvmlDeviceGetCurrPcieLinkGeneration] = ver
@@ -47,7 +49,7 @@ let ver = v"3.295"
 end
 
 # changes between NVML v3.295 and v4.304 RC
-let ver = v"4.304"
+let ver = v"304"
     minver[:nvmlDeviceGetInforomConfigurationChecksum] = ver
     minver[:nvmlDeviceValidateInforom] = ver
     minver[:nvmlDeviceGetDisplayActive] = ver
@@ -67,7 +69,7 @@ let ver = v"4.304"
 end
 
 # changes between NVML v4.304 RC and v4.304 Production
-let ver = v"4.304"
+let ver = v"304"
     minver[:nvmlDeviceGetGpuOperationMode] = ver
     minver[:nvmlDeviceSetGpuOperationMode] = ver
 end
@@ -85,13 +87,13 @@ let ver = v"5.319"
 end
 
 # changes between NVML v5.319 RC and v5.319 Update
-let ver = v"5.319"
+let ver = v"319"
     minver[:nvmlDeviceSetAPIRestriction] = ver
     minver[:nvmlDeviceGetAPIRestriction] = ver
 end
 
 # changes between NVML v5.319 Update and v331
-let ver = v"3.331"
+let ver = v"331"
     minver[:nvmlDeviceGetMinorNumber] = ver
     minver[:nvmlDeviceGetBAR1MemoryInfo] = ver
     minver[:nvmlDeviceGetBridgeChipInfo] = ver
@@ -99,7 +101,7 @@ let ver = v"3.331"
 end
 
 # changes between NVML v331 and v340
-let ver = v"3.340"
+let ver = v"340"
     minver[:nvmlDeviceGetSamples] = ver
     minver[:nvmlDeviceGetTemperatureThreshold] = ver
     minver[:nvmlDeviceGetBrand] = ver
@@ -117,14 +119,14 @@ let ver = v"3.340"
 end
 
 # changes between v340 and v346
-let ver = v"3.346"
+let ver = v"346"
     minver[:nvmlDeviceGetGraphicsRunningProcesses] = ver
     minver[:nvmlDeviceGetPcieReplayCounter] = ver
     minver[:nvmlDeviceGetPcieThroughput] = ver
 end
 
 # changes between v346 and v349
-let ver = v"3.349"
+let ver = v"349"
     minver[:nvmlDeviceGetTopologyCommonAncestor] = ver
     minver[:nvmlDeviceGetTopologyNearestGpus] = ver
     minver[:nvmlSystemGetTopologyGpuSet] = ver
@@ -135,10 +137,10 @@ minver[:nvmlDummyUnavailable1]   = v"999"
 maxver[:nvmlDummyUnavailable2]   = v"0"
 minver[:nvmlDummyUnavailable3]   = v"0"
 maxver[:nvmlDummyUnavailable3]   = v"1"
-maxver[:nvmlDummyUnavailable4]   = libnvml_version
+maxver[:nvmlDummyUnavailable4]   = driver_version
 minver[:nvmlDummyAvailable1]     = v"0"
 maxver[:nvmlDummyAvailable1]     = v"999"
-minver[:nvmlDummyAvailable2]     = libnvml_version
+minver[:nvmlDummyAvailable2]     = driver_version
 
 # explicitly mark unavailable symbols, signaling `resolve` to error out
 const versioned_functions = keys(minver) ∪ keys(maxver)
@@ -146,7 +148,7 @@ for fun in versioned_functions
     minimum_version = get(minver, fun, v"0")    
     maximum_version = get(maxver, fun, v"999")
 
-    if !(minimum_version <= libnvml_version < maximum_version)
+    if !(minimum_version <= driver_version < maximum_version)
         mapping[fun] = :unavailable
     end
 end
@@ -191,10 +193,19 @@ end
 #
 
 """
-Returns the NVML version as a VersionNumber.
+Query the NVML version number.
 """
 function version()
-    buf = Vector{UInt8}(128)
+    buf = Vector{UInt8}(80)
     @apicall(:nvmlSystemGetNVMLVersion, (Ptr{UInt8}, Cuint), buf, length(buf))
+    return VersionNumber(unsafe_string(pointer(buf)))
+end
+
+"""
+Query the driver version number.
+"""
+function driver()
+    buf = Vector{UInt8}(80)
+    @apicall(:nvmlSystemGetDriverVersion, (Ptr{UInt8}, Cuint), buf, length(buf))
     return VersionNumber(unsafe_string(pointer(buf)))
 end
