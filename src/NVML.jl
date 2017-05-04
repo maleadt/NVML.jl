@@ -16,6 +16,11 @@ const libnvml = libnvml_path
 include("errors.jl")
 include("base.jl")
 
+include("system.jl")
+include("unit.jl")
+include("device.jl")
+include("event.jl")
+
 function __init__()
     # NOTE: this is a leap of faith, as there's both nvmlInit and nvmlInit_v2
     #       (and the version might have changed, but we can't query that before nvmlInit)

@@ -19,7 +19,4 @@ end
 
 @test_throws_nvmlerror NVML.ERROR_INVALID_ARGUMENT NVML.@apicall(:nvmlUnitGetHandleByIndex, (Cuint, Ptr{Void}), 0, C_NULL)
 
-NVML.version()
-NVML.driver()
-
 end
