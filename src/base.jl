@@ -37,7 +37,7 @@ function resolve(f::Symbol)
     global mapping, version_requirements
     versioned_f = get(mapping, f, f)
     if versioned_f == Symbol()
-        throw(CuVersionError(f, minreq[f]))
+        throw(NVMLVersionError(f, minreq[f]))
     end
     return versioned_f
 end
@@ -47,34 +47,22 @@ end
 # API call wrapper
 #
 
-# ccall wrapper for calling functions in the CUDA library
-macro apicall(f, argtypes, args...)
-    # Escape the tuple of arguments, making sure it is evaluated in caller scope
-    # (there doesn't seem to be inline syntax like `$(esc(argtypes))` for this)
-    esc_args = [esc(arg) for arg in args]
-
-    blk = Expr(:block)
-
-    if !isa(f, Expr) || f.head != :quote
+# ccall wrapper for calling functions in NVIDIA libraries
+macro apicall(fun, argtypes, args...)
+    if !isa(fun, Expr) || fun.head != :quote
         error("first argument to @apicall should be a symbol")
     end
 
-    # Generate the actual call
-    api_f = resolve(f.args[1])
-    @gensym status
-    push!(blk.args, quote
-        $status = ccall(($(QuoteNode(api_f)), libnvml), Cint, $(esc(argtypes)), $(esc_args...))
-    end)
+    api_fun = resolve(fun.args[1])
+    return quote
+        status = ccall(($(QuoteNode(api_fun)), libnvml), Cint,
+                       $(esc(argtypes)), $(map(esc, args)...))
 
-    # Check the return code
-    push!(blk.args, quote
-        if $status != SUCCESS.code
-            err = CuError($status)
+        if status != SUCCESS.code
+            err = NVMLError(status)
             throw(err)
         end
-    end)
-
-    return blk
+    end
 end
 
 

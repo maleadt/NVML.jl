@@ -13,7 +13,7 @@ immutable NVMLVersionError <: Exception
 end
 
 function Base.showerror(io::IO, err::NVMLVersionError)
-    @printf(io, "NVMLVersionError: call to %s requires at least driver v%s",
+    @printf(io, "NVMLVersionError: call to %s requires at least NVML v%s",
             err.symbol, err.minver)
 end
 
