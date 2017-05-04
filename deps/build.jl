@@ -43,10 +43,13 @@ end
 
 # find NVIDIA Management Library
 function find_libnvml()
-    libnvml_dir = is_windows() ? joinpath(ENV["ProgramFiles"], "NVIDIA Corporation", "NVSMI") : ""
-    if is_windows() && !isdir(libnvml_dir)
-        error("Could not determine NVIDIA driver installation location.")
-    end
+    libnvml_dir = if is_windows()
+            program_files = haskey(ENV, "ProgramW6432") ? ENV["ProgramW6432"] : ENV["ProgramFiles"]
+            dir = joinpath(program_files, "NVIDIA Corporation", "NVSMI")
+            isdir(dir) || error("Could not determine NVIDIA driver installation location.")
+        else
+            ""
+        end
     # NOTE: no need to look in /opt/cuda or /usr/local/cuda here,
     #       as the driver is kernel-specific and should be installed in standard directories
     libnvml = Libdl.find_library(["libnvidia-ml", "nvml"], [libnvml_dir])
