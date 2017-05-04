@@ -186,3 +186,12 @@ macro apicall(fun, argtypes, args...)
         end
     end
 end
+
+
+#
+# Initialization and cleanup
+#
+
+init() = @apicall(:nvmlInit, ())
+
+shutdown() = @apicall(:nvmlShutdown, ())

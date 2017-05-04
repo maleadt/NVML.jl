@@ -1,3 +1,5 @@
+# queries and commands against each unit
+
 # TODO:
 # - nvmlSystemGetHicVersion
 # - nvmlUnitGetCount

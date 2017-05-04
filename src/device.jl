@@ -1,3 +1,5 @@
+# queries and commands that can be performed against each device
+
 # TODO:
 # - nvmlDeviceClearCpuAffinity
 # - nvmlDeviceGetAPIRestriction

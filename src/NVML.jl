@@ -20,11 +20,12 @@ include("system.jl")
 include("unit.jl")
 include("device.jl")
 include("event.jl")
+include("accounting.jl")
 
 function __init__()
     # NOTE: this is a leap of faith, as there's both nvmlInit and nvmlInit_v2
     #       (and the version might have changed, but we can't query that before nvmlInit)
-    @apicall(:nvmlInit, (Cint,), 0)
+    init()
 
     if version() != libnvml_version
         error("NVML version has changed. Please re-run Pkg.build(\"NVML\") and restart Julia.")

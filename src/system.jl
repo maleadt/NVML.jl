@@ -1,3 +1,5 @@
+# queries and commands against the local system (ie. not device specific)
+
 # TODO:
 # - nvmlSystemGetProcessName
 
