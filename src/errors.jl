@@ -9,12 +9,19 @@ export NVMLError
 
 immutable NVMLVersionError <: Exception
     symbol::Symbol
-    minver::VersionNumber
+    minver::Nullable{VersionNumber}
+    maxver::Nullable{VersionNumber}
 end
 
 function Base.showerror(io::IO, err::NVMLVersionError)
-    @printf(io, "NVMLVersionError: call to %s requires at least NVML v%s",
-            err.symbol, err.minver)
+    print(io, "NVMLVersionError: API function $(err.symbol) is only available ")
+    if isnull(err.minver)
+        println(io, "below driver $(get(err.maxver))")
+    elseif isnull(err.maxver)
+        println(io, "starting with driver $(get(err.minver))")
+    else
+        println(io, "between driver $(get(err.minver)) and $(get(err.maxver))")
+    end
 end
 
 

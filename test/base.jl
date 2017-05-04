@@ -1,9 +1,14 @@
 @testset "base" begin
 
-@test_throws ErrorException NVML.@apicall(:nvmlNonexisting, ())
+for i in 1:4
+    fun = Symbol(:nvmlDummyUnavailable, i)
+    @test_throws NVML.NVMLVersionError NVML.resolve(fun)
+end
 
-@test_throws ErrorException @eval NVML.@apicall(:nvmlDummyAvailable, ())
-@test_throws NVML.NVMLVersionError @eval NVML.@apicall(:nvmlDummyUnavailable, ())
+for i in 1:2
+    fun = Symbol(:nvmlDummyAvailable, i)
+    NVML.resolve(fun)
+end
 
 @test_throws ErrorException eval(
     quote
