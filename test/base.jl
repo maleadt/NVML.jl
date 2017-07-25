@@ -17,6 +17,8 @@ end
     end
 )
 
-@test_throws_nvmlerror NVML.ERROR_INVALID_ARGUMENT NVML.@apicall(:nvmlUnitGetHandleByIndex, (Cuint, Ptr{Void}), 0, C_NULL)
+if NVML.configured
+    @test_throws_nvmlerror NVML.ERROR_INVALID_ARGUMENT NVML.@apicall(:nvmlUnitGetHandleByIndex, (Cuint, Ptr{Void}), 0, C_NULL)
+end
 
 end

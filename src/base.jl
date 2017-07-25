@@ -170,15 +170,29 @@ end
 #
 
 # ccall wrapper for calling functions in NVIDIA libraries
-macro apicall(fun, argtypes, args...)
+macro unsafe_apicall(fun, rettyp, argtypes, args...)
     if !isa(fun, Expr) || fun.head != :quote
         error("first argument to @apicall should be a symbol")
     end
 
-    api_fun = resolve(fun.args[1])
+    api_fun = resolve(fun.args[1])  # TODO: make this error at runtime?
+
+    if libnvml == nothing
+        return :(error("NVML.jl has not been configured."))
+    end
+
     return quote
-        status = ccall(($(QuoteNode(api_fun)), libnvml), Cint,
-                       $(esc(argtypes)), $(map(esc, args)...))
+        ccall(($(QuoteNode(api_fun)), libnvml), $(esc(rettyp)),
+                   $(esc(argtypes)), $(map(esc, args)...))
+    end
+end
+
+# ccall wrapper for calling functions in NVIDIA libraries,
+# checking the return code for validity
+macro apicall(fun, argtypes, args...)
+    return quote
+        status = @unsafe_apicall($(esc(fun)), Cint,
+                                 $(esc(argtypes)), $(map(esc, args)...))
 
         if status != SUCCESS.code
             err = NVMLError(status)
@@ -186,12 +200,3 @@ macro apicall(fun, argtypes, args...)
         end
     end
 end
-
-
-#
-# Initialization and cleanup
-#
-
-init() = @apicall(:nvmlInit, ())
-
-shutdown() = @apicall(:nvmlShutdown, ())

@@ -6,30 +6,26 @@ using Compat
 using Compat.String
 
 const ext = joinpath(dirname(@__DIR__), "deps", "ext.jl")
-if isfile(ext)
+const configured = if isfile(ext)
     include(ext)
+    true
 else
-    error("Unable to load dependency file $ext.\nPlease run Pkg.build(\"NVML\") and restart Julia.")
+    const driver_version = v"285"
+    const libnvml_path = nothing
+    false
 end
 const libnvml = libnvml_path
 
-include("errors.jl")
+include("types.jl")
 include("base.jl")
 
+# NVML API wrappers
+include("init.jl")
+include("errors.jl")
 include("system.jl")
 include("unit.jl")
 include("device.jl")
 include("event.jl")
 include("accounting.jl")
-
-function __init__()
-    # NOTE: this is a leap of faith, as there's both nvmlInit and nvmlInit_v2
-    #       (and the version might have changed, but we can't query that before nvmlInit)
-    init()
-
-    if version() != libnvml_version
-        error("NVML version has changed. Please re-run Pkg.build(\"NVML\") and restart Julia.")
-    end
-end
 
 end

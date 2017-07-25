@@ -3,13 +3,17 @@ using Base.Test
 
 using Compat
 
-include("util.jl")
-
 @testset "NVML" begin
 
-include("errors.jl")
+include("util.jl")
+
 include("base.jl")
 
-include("system.jl")
+if NVML.configured
+    include("errors.jl")
+    include("system.jl")
+else
+    warn("NVML.jl has not been configured; skipping most tests.")
+end
 
 end

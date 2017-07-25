@@ -3,14 +3,14 @@
 let
     ex = NVMLError(0)
     @test NVML.name(ex) == :SUCCESS
-    @test NVML.description(ex) == "The operation was successful"
+    @test NVML.description(ex) == "Success"
     
     io = IOBuffer()
     showerror(io, ex)
     str = String(take!(io))
 
     @test contains(str, "0")
-    @test contains(str, "The operation was successful")
+    @test contains(str, "Success")
 end
 
 let
