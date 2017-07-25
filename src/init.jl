@@ -1,16 +1,12 @@
 # Initialization and Cleanup
 
 """
-Initialize the CUDA driver API.
+Initialize the NVML API.
 
 This function is automatically called upon loading the package. You should not have to call
 this manually.
 """
-function init()
-    # NOTE: this is a leap of faith, as there's both nvmlInit and nvmlInit_v2
-    #       (and the version might have changed, but we can't query that before nvmlInit)
-    @apicall(:nvmlInit, ())
-end
+init() = @apicall(:nvmlInit, ())
 
 shutdown() = @apicall(:nvmlShutdown, ())
 

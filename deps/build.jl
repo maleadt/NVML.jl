@@ -17,6 +17,8 @@ macro apicall(libpath, fn, types, args...)
 end
 
 function init(libpath)
+    # NOTE: this is a leap of faith, as there's both nvmlInit and nvmlInit_v2
+    #       (and the version might have changed, but we can't query that before nvmlInit)
     @apicall(libpath, :nvmlInit, ())
     return
 end
