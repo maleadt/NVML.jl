@@ -41,7 +41,7 @@ function description(err::NVMLError)
 end
 
 function Base.showerror(io::IO, err::NVMLError)
-    @printf(io, "%s (NVML error #%d, %s)", description(err), err.code, name(err))
+    @printf(io, "NVML error: %s (code #%d, %s)", description(err), err.code, name(err))
 
     if err.meta != nothing
         print(io, "\n")
@@ -49,8 +49,7 @@ function Base.showerror(io::IO, err::NVMLError)
     end
 end
 
-Base.show(io::IO, err::NVMLError) =
-    @printf(io, "%s(%d)", name(err), err.code)
+Base.show(io::IO, err::NVMLError) = @printf(io, "NVMLError(%d, %s)", err.code, name(err))
 
 # known error constants
 const return_codes = Dict{nvmlReturn_t,Symbol}(

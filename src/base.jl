@@ -177,9 +177,7 @@ macro unsafe_apicall(fun, rettyp, argtypes, args...)
 
     api_fun = resolve(fun.args[1])  # TODO: make this error at runtime?
 
-    if libnvml == nothing
-        return :(error("NVML.jl has not been configured."))
-    end
+    configured || return :(error("NVML.jl has not been configured."))
 
     return quote
         ccall(($(QuoteNode(api_fun)), libnvml), $(esc(rettyp)),
