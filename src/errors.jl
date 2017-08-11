@@ -41,12 +41,11 @@ function description(err::NVMLError)
 end
 
 function Base.showerror(io::IO, err::NVMLError)
-    if isnull(err.info)
-        @printf(io, "%s (NVML error #%d, %s)",
-                    description(err), err.code, name(err))
-    else
-        @printf(io, "%s (NVML error #%d, %s)\n%s",
-                    description(err), err.code, name(err), get(err.info))
+    @printf(io, "%s (NVML error #%d, %s)", description(err), err.code, name(err))
+
+    if err.meta != nothing
+        print(io, "\n")
+        print(io, err.meta)
     end
 end
 

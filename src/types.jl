@@ -6,8 +6,7 @@ const nvmlReturn_t = Cint
 
 immutable NVMLError <: Exception
     code::nvmlReturn_t
-    info::Nullable{String}
+    meta::Any
 
-    NVMLError(code) = new(code, Nullable{String}())
-    NVMLError(code, info) = new(code, Nullable{String}(info))
+    NVMLError(code, meta=nothing) = new(code, meta)
 end
