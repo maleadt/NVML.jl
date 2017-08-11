@@ -70,8 +70,11 @@ end
 ## main
 
 const ext = joinpath(@__DIR__, "ext.jl")
+const ext_bak = ext * ".bak"
 
 function main()
+    ispath(ext) && mv(ext, ext_bak; remove_destination=true)
+
     # discover stuff
     libnvml_path = find_libnvml()
     init(libnvml_path)
@@ -83,12 +86,14 @@ function main()
     shutdown(libnvml_path)
 
     # check if we need to rebuild
-    if isfile(ext)
-        @eval module Previous; include($ext); end
+    if isfile(ext_bak)
+        @eval module Previous; include($ext_bak); end
         if isdefined(Previous, :libnvml_version) && Previous.libnvml_version == libnvml_version &&
            isdefined(Previous, :driver_version) && Previous.driver_version == driver_version &&
            isdefined(Previous, :libnvml_path)    && Previous.libnvml_path == libnvml_path
             info("NVML.jl has already been built for this set-up.")
+            mv(ext_bak, ext)
+            return
         end
     end
 
@@ -110,10 +115,4 @@ function main()
     return
 end
 
-try
-    main()
-catch ex
-    # if anything goes wrong, wipe the existing ext.jl to prevent the package from loading
-    rm(ext; force=true)
-    rethrow(ex)
-end
+main()
