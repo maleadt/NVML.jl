@@ -1,5 +1,4 @@
-NVML.jl
-=======
+# ~NVML.jl~: DEPRECATED, use [CUDA.jl](https://github.com/JuliaGPU/CUDA.jl) instead!
 
 This package wraps the [NVIDIA Management Library
 API](http://docs.nvidia.com/deploy/nvml-api/), a programmatic interface for monitoring and
